@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IOutOfProcessEntryPoint.cs" />
+    <Compile Include="IOutOfProcessServices.cs" />
     <Compile Include="ISafeChildProcessHandle.cs" />
     <Compile Include="IAppHostServices.cs" />
     <Compile Include="IRemoteElement.cs" />
