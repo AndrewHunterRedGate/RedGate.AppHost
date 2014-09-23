@@ -10,8 +10,9 @@ namespace RedGate.AppHost.Client
     {
         private readonly Dispatcher m_UiThreadDispatcher;
         private readonly IOutOfProcessEntryPoint m_EntryPoint;
+        private readonly IOutOfProcessServices m_Services;
 
-        public SafeChildProcessHandle(Dispatcher uiThreadDispatcher, IOutOfProcessEntryPoint entryPoint)
+        public SafeChildProcessHandle(Dispatcher uiThreadDispatcher, IOutOfProcessEntryPoint entryPoint, IOutOfProcessServices services)
         {
             if (uiThreadDispatcher == null) 
                 throw new ArgumentNullException("uiThreadDispatcher");
@@ -21,6 +22,7 @@ namespace RedGate.AppHost.Client
 
             m_UiThreadDispatcher = uiThreadDispatcher;
             m_EntryPoint = entryPoint;
+            m_Services = services;
         }
 
         public IRemoteElement CreateElement(IAppHostServices services)
@@ -28,6 +30,11 @@ namespace RedGate.AppHost.Client
             Func<IRemoteElement> createRemoteElement = () => m_EntryPoint.CreateElement(services).ToRemotedElement();
 
             return (IRemoteElement)m_UiThreadDispatcher.Invoke(createRemoteElement);
+        }
+
+        public T GetService<T>(IAppHostServices services) where T:class
+        {
+            return m_Services.GetService<T>(services);
         }
     }
 }

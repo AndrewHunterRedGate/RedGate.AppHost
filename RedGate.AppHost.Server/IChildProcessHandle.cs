@@ -9,5 +9,7 @@ namespace RedGate.AppHost.Server
     public interface IChildProcessHandle
     {
         FrameworkElement CreateElement(IAppHostServices services);
+        TServiceType GetService<TServiceType>(IAppHostServices services)
+            where TServiceType : class;
     }
 }

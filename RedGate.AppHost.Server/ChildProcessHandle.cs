@@ -17,5 +17,10 @@ namespace RedGate.AppHost.Server
         {
             return m_SafeChildProcessHandle.CreateElement(services).ToFrameworkElement();
         }
+
+        public TServiceType GetService<TServiceType>(IAppHostServices services) where TServiceType : class
+        {
+            return m_SafeChildProcessHandle.GetService<TServiceType>(services);
+        }
     }
 }

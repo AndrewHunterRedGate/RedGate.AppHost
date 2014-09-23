@@ -36,7 +36,8 @@ namespace RedGate.AppHost.Client
         private static void MainInner(string id, string assembly)
         {
             var entryPoint = LoadChildAssembly(assembly);
-            InitializeRemoting(id, entryPoint);
+            var services = FindServices(assembly, entryPoint);
+            InitializeRemoting(id, entryPoint, services);
             SignalReady(id);
             RunWpf();
         }
@@ -50,11 +51,34 @@ namespace RedGate.AppHost.Client
             return (IOutOfProcessEntryPoint) Activator.CreateInstance(entryPoint);
         }
 
-        private static void InitializeRemoting(string id, IOutOfProcessEntryPoint entryPoint)
+        private static IOutOfProcessServices FindServices(string assembly, IOutOfProcessEntryPoint entryPoint)
+        {
+            var services = entryPoint as IOutOfProcessServices;
+            if (services != null)
+            {
+                return services;
+            }
+
+            var outOfProcAssembly = Assembly.LoadFile(assembly);
+            var serviceType = (from type in outOfProcAssembly.GetTypes()
+                              where type.GetInterfaces().Contains(typeof(IOutOfProcessServices))
+                                select type).FirstOrDefault();
+
+            if (serviceType != null)
+            {
+                return (IOutOfProcessServices) Activator.CreateInstance(serviceType);
+            }
+            else
+            {
+                return null;
+            }
+    }
+
+        private static void InitializeRemoting(string id, IOutOfProcessEntryPoint entryPoint, IOutOfProcessServices services)
         {
             Remoting.Remoting.RegisterChannels(true, id);
 
-            s_SafeChildProcessHandle = new SafeChildProcessHandle(Dispatcher.CurrentDispatcher, entryPoint);
+            s_SafeChildProcessHandle = new SafeChildProcessHandle(Dispatcher.CurrentDispatcher, entryPoint, services);
             Remoting.Remoting.RegisterService<SafeChildProcessHandle, ISafeChildProcessHandle>(s_SafeChildProcessHandle);
         }
 

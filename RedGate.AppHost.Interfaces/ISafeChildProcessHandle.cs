@@ -6,5 +6,6 @@
     public interface ISafeChildProcessHandle
     {
         IRemoteElement CreateElement(IAppHostServices services);
+        T GetService<T>(IAppHostServices services) where T:class;
     }
 }
