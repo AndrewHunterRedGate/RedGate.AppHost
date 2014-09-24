@@ -36,7 +36,7 @@ namespace RedGate.AppHost.Client
         private static void MainInner(string id, string assembly)
         {
             var entryPoint = LoadChildAssembly(assembly);
-            var services = FindServices(assembly, entryPoint);
+            var services = LoadServices(assembly, entryPoint);
             InitializeRemoting(id, entryPoint, services);
             SignalReady(id);
             RunWpf();
@@ -46,12 +46,21 @@ namespace RedGate.AppHost.Client
         {
             var outOfProcAssembly = Assembly.LoadFile(assembly);
 
-            var entryPoint = outOfProcAssembly.GetTypes().Single(x => x.GetInterfaces().Contains(typeof (IOutOfProcessEntryPoint)));
+            var entrypointType = (from type in outOfProcAssembly.GetTypes()
+                                  where type.GetInterfaces().Contains(typeof(IOutOfProcessEntryPoint))
+                                  select type).FirstOrDefault();
 
-            return (IOutOfProcessEntryPoint) Activator.CreateInstance(entryPoint);
+            if (entrypointType != null)
+            {
+                return (IOutOfProcessEntryPoint) Activator.CreateInstance(entrypointType);
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        private static IOutOfProcessServices FindServices(string assembly, IOutOfProcessEntryPoint entryPoint)
+        private static IOutOfProcessServices LoadServices(string assembly, IOutOfProcessEntryPoint entryPoint)
         {
             var services = entryPoint as IOutOfProcessServices;
             if (services != null)
@@ -61,8 +70,8 @@ namespace RedGate.AppHost.Client
 
             var outOfProcAssembly = Assembly.LoadFile(assembly);
             var serviceType = (from type in outOfProcAssembly.GetTypes()
-                              where type.GetInterfaces().Contains(typeof(IOutOfProcessServices))
-                                select type).FirstOrDefault();
+                               where type.GetInterfaces().Contains(typeof(IOutOfProcessServices))
+                               select type).FirstOrDefault();
 
             if (serviceType != null)
             {
