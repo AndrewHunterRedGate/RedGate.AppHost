@@ -32,7 +32,9 @@ namespace RedGate.AppHost.Client
             }
             else
             {
-                return null;
+                Func<IRemoteElement> createRemoteElement = () => GetService<FrameworkElement>(services).ToRemotedElement();
+
+                return (IRemoteElement)m_UiThreadDispatcher.Invoke(createRemoteElement);
             }
         }
 
