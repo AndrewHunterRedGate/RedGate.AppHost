@@ -16,9 +16,6 @@ namespace RedGate.AppHost.Client
         {
             if (uiThreadDispatcher == null) 
                 throw new ArgumentNullException("uiThreadDispatcher");
-            
-            if (entryPoint == null) 
-                throw new ArgumentNullException("entryPoint");
 
             m_UiThreadDispatcher = uiThreadDispatcher;
             m_EntryPoint = entryPoint;
@@ -27,14 +24,28 @@ namespace RedGate.AppHost.Client
 
         public IRemoteElement CreateElement(IAppHostServices services)
         {
-            Func<IRemoteElement> createRemoteElement = () => m_EntryPoint.CreateElement(services).ToRemotedElement();
+            if (m_EntryPoint != null)
+            { 
+                Func<IRemoteElement> createRemoteElement = () => m_EntryPoint.CreateElement(services).ToRemotedElement();
 
-            return (IRemoteElement)m_UiThreadDispatcher.Invoke(createRemoteElement);
+                return (IRemoteElement)m_UiThreadDispatcher.Invoke(createRemoteElement);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public T GetService<T>(IAppHostServices services) where T:class
         {
-            return m_Services.GetService<T>(services);
+            if (m_Services != null)
+            {
+                return m_Services.GetService<T>(services);
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }
